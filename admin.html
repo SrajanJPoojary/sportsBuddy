@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Sports Buddy — Admin Console</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header>
+    <h1>Admin Console</h1>
+    <nav>
+      <button id="btnLogoutAdmin" hidden>Logout</button>
+      <a href="index.html">User App</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="panel">
+      <p id="who"></p>
+    </section>
+
+    <section class="panel">
+      <h2>Add Sport</h2>
+      <input id="sportName" placeholder="Name" />
+      <input id="sportSlug" placeholder="slug (e.g. badminton)" />
+      <button id="addSport">Add Sport</button>
+    </section>
+
+    <section class="panel">
+      <h2>Add City</h2>
+      <input id="cityName" placeholder="City name" />
+      <button id="addCity">Add City</button>
+    </section>
+
+    <section class="panel">
+      <h2>Add Area</h2>
+      <input id="areaName" placeholder="Area name" />
+      <select id="areaCityId"><option value="">Select city</option></select>
+      <button id="addArea">Add Area</button>
+    </section>
+
+    <section class="panel">
+      <h2>Manage Events</h2>
+      <div id="adminEvents" class="list"></div>
+    </section>
+  </main>
+
+  <!-- Firebase App (always needed) -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } 
+    from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+  import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc } 
+    from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCoBO_b49RHQQutzH5otsEA1ZDZUwrPlUc",
+    authDomain: "sports-buddy-27441.firebaseapp.com",
+    projectId: "sports-buddy-27441",
+    storageBucket: "sports-buddy-27441.firebasestorage.app",
+    messagingSenderId: "131481386045",
+    appId: "1:131481386045:web:c2d99d8b8f5aa88330fe54",
+    measurementId: "G-QC404YC75D"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  // Expose for other scripts
+  window.firebaseServices = { auth, db };
+</script>
+
+  <script type="module" src="./js/auth.js"></script>
+  <script type="module" src="./js/db.js"></script>
+  <script type="module" src="./js/ui.js"></script>
+</body>
+</html>

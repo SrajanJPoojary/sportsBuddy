@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sports Buddy</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<h1>🏀 Sports Buddy</h1>
+
+<!-- Auth Section -->
+<div id="auth-section">
+  <input type="email" id="email" placeholder="Email">
+  <input type="password" id="password" placeholder="Password">
+  <button id="signupBtn">Sign Up</button>
+  <button id="loginBtn">Login</button>
+  <button id="googleBtn">Login with Google</button>
+</div>
+
+<!-- User Section -->
+<div id="user-section" style="display:none;">
+  <h2>Welcome, <span id="userEmail"></span> 👋</h2>
+  <button id="logoutBtn">Log Out</button>
+
+  <h3>Create Event</h3>
+  <input type="text" id="event-name" placeholder="Event Name">
+  <input type="text" id="event-location" placeholder="Location">
+  <input type="datetime-local" id="event-time">
+  <input type="text" id="event-sport" placeholder="Sport Type">
+  <button id="add-event-btn">Add Event</button>
+
+  <h3>Events</h3>
+  <ul id="events-list"></ul>
+</div>
+
+<!-- JS Scripts -->
+<script type="module">
+import "./js/firebase-init.js";
+import { signup, login, googleLogin, logout, listenToAuthChanges } from "./js/auth.js";
+import { addEvent, getEvents, updateEvent, deleteEvent } from "./js/db.js";
+
+// Elements
+const emailInput = document.getElementById("email");
+const passwordInput = document.getElementById("password");
+const signupBtn = document.getElementById("signupBtn");
+const loginBtn = document.getElementById("loginBtn");
+const googleBtn = document.getElementById("googleBtn");
+const logoutBtn = document.getElementById("logoutBtn");
+
+const authSection = document.getElementById("auth-section");
+const userSection = document.getElementById("user-section");
+const userEmail = document.getElementById("userEmail");
+
+const nameInput = document.getElementById("event-name");
+const locInput = document.getElementById("event-location");
+const timeInput = document.getElementById("event-time");
+const sportInput = document.getElementById("event-sport");
+const addBtn = document.getElementById("add-event-btn");
+const eventsList = document.getElementById("events-list");
+
+// Auth events
+signupBtn.addEventListener("click", () => signup(emailInput.value, passwordInput.value));
+loginBtn.addEventListener("click", () => login(emailInput.value, passwordInput.value));
+googleBtn.addEventListener("click", googleLogin);
+logoutBtn.addEventListener("click", logout);
+
+// Auth listener
+listenToAuthChanges(async user => {
+  if (user) {
+    userEmail.textContent = user.email;
+    authSection.style.display = "none";
+    userSection.style.display = "block";
+    await loadEvents();
+  } else {
+    authSection.style.display = "block";
+    userSection.style.display = "none";
+  }
+});
+
+// Add event
+addBtn.addEventListener("click", async () => {
+  if (!nameInput.value || !locInput.value || !timeInput.value || !sportInput.value) {
+    alert("Please fill all fields!");
+    return;
+  }
+
+  await addEvent({
+    name: nameInput.value,
+    location: locInput.value,
+    time: timeInput.value,
+    sportType: sportInput.value
+  });
+
+  nameInput.value = ""; 
+  locInput.value = "";
+  timeInput.value = "";
+  sportInput.value = "";
+
+  await loadEvents();
+});
+
+// Load events
+async function loadEvents() {
+  eventsList.innerHTML = "";
+  const events = await getEvents();
+  events.forEach(e => {
+    const li = document.createElement("li");
+    li.innerHTML = `
+      <div>
+        <strong>${e.name}</strong> - ${e.sportType} at ${e.location}<br>
+        <small>${e.time ? new Date(e.time).toLocaleString() : "N/A"}</small>
+      </div>
+      <div>
+        <button data-id="${e.id}" class="edit-btn">Edit</button>
+        <button data-id="${e.id}" class="delete-btn">Delete</button>
+      </div>
+    `;
+    eventsList.appendChild(li);
+  });
+
+  // Edit/Delete handlers
+  document.querySelectorAll(".edit-btn").forEach(btn => {
+    btn.addEventListener("click", async ev => {
+      const id = ev.target.dataset.id;
+      const newName = prompt("New Event Name:");
+      if (newName) await updateEvent(id, { name: newName });
+      loadEvents();
+    });
+  });
+
+  document.querySelectorAll(".delete-btn").forEach(btn => {
+    btn.addEventListener("click", async ev => {
+      const id = ev.target.dataset.id;
+      if (confirm("Delete this event?")) {
+        await deleteEvent(id);
+        loadEvents();
+      }
+    });
+  });
+}
+</script>
+
+</body>
+</html>
